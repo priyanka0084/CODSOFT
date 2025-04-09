@@ -1,0 +1,47 @@
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+data = {
+    'title': [
+        'The Matrix',
+        'Inception',
+        'Interstellar',
+        'The Prestige',
+        'The Dark Knight'
+    ],
+    'description': [
+        'A computer hacker learns about the true nature of reality and his role in the war against its controllers.',
+        'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea.',
+        'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.',
+        'After a tragic accident, two magicians engage in a battle to create the ultimate illusion while sacrificing everything they have.',
+        'When the menace known as the Joker emerges, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.'
+    ]
+}
+
+# Create a DataFrame
+movies_df = pd.DataFrame(data)
+# Convert descriptions into vectors
+tfidf = TfidfVectorizer(stop_words='english')
+tfidf_matrix = tfidf.fit_transform(movies_df['description'])
+
+# Compute cosine similarity matrix
+cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+
+# Function to recommend similar movies
+def recommend_movie(title):
+    index = movies_df[movies_df['title'] == title].index[0]
+    sim_scores = list(enumerate(cosine_sim[index]))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    sim_scores = sim_scores[1:4]  # top 3 similar movies
+    recommended_titles = [movies_df.iloc[i[0]]['title'] for i in sim_scores]
+    return recommended_titles
+
+# Try recommending movies
+movie_name = input("Enter a movie name: ")
+if movie_name in movies_df['title'].values:
+    recommendations = recommend_movie(movie_name)
+    print("Recommended movies:")
+    for movie in recommendations:
+        print("-", movie)
+else:
+    print("Movie not found in dataset.")
